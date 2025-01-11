@@ -1,12 +1,15 @@
 ﻿// WindowsPhoneSpeedyBlupi, Version=1.0.0.5, Culture=neutral, PublicKeyToken=6db12cd62dbec439
 // WindowsPhoneSpeedyBlupi.Def
 
+using Microsoft.Xna.Framework.Input;
+using static WindowsPhoneSpeedyBlupi.Def;
 
 namespace WindowsPhoneSpeedyBlupi
 {
 
     public static class Def
     {
+
         public enum Phase
         {
             None,
@@ -24,7 +27,7 @@ namespace WindowsPhoneSpeedyBlupi
             Ranking
         }
 
-        public enum ButtonGlygh
+        public enum ButtonGlyph
         {
             None,
             InitGamerA,

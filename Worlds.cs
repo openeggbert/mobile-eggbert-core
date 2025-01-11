@@ -1,6 +1,7 @@
 ﻿// WindowsPhoneSpeedyBlupi, Version=1.0.0.5, Culture=neutral, PublicKeyToken=6db12cd62dbec439
 // WindowsPhoneSpeedyBlupi.Worlds
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.IsolatedStorage;
@@ -41,14 +42,17 @@ namespace WindowsPhoneSpeedyBlupi
                 text = streamReader.ReadToEnd();
                 stream.Close();
             }
-            catch
+            catch (Exception e)
             {
+                Debug.Write(e.Message);
+                Debug.Write("Fatal error. Loading world failed: " + worldFilename + "\n");
+                //Environment.Exit(1);
             }
             if (text == null)
             {
                 return null;
             }
-            return text.Split('\n');
+            return text.Split("\n");
         }
 
         private static string GetWorldFilename(int gamer, int rank)
@@ -271,38 +275,38 @@ namespace WindowsPhoneSpeedyBlupi
                     int num = text.IndexOf(name + "=");
                     if (num == -1)
                     {
-                        return default(TinyPoint);
+                        return default;
                     }
                     num += name.Length + 1;
                     int num2 = text.IndexOf(";", num);
                     if (num2 == -1)
                     {
-                        return default(TinyPoint);
+                        return default;
                     }
                     int num3 = text.IndexOf(" ", num);
                     if (num3 == -1)
                     {
-                        return default(TinyPoint);
+                        return default;
                     }
                     string s = text.Substring(num, num2 - num);
                     string s2 = text.Substring(num2 + 1, num3 - num2 - 1);
                     int result;
                     if (!int.TryParse(s, out result))
                     {
-                        return default(TinyPoint);
+                        return default;
                     }
                     int result2;
                     if (!int.TryParse(s2, out result2))
                     {
-                        return default(TinyPoint);
+                        return default;
                     }
-                    TinyPoint result3 = default(TinyPoint);
+                    TinyPoint result3 = default;
                     result3.X = result;
                     result3.Y = result2;
                     return result3;
                 }
             }
-            return default(TinyPoint);
+            return default;
         }
 
         public static int? GetDecorField(string[] lines, string section, int x, int y)
