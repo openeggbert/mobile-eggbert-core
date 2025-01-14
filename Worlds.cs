@@ -6,12 +6,14 @@ using System.Globalization;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Text;
-using Microsoft.JSInterop;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using WindowsPhoneSpeedyBlupi;
+#if KNI && Web
+using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+#endif
 
 namespace WindowsPhoneSpeedyBlupi
 {
@@ -41,26 +43,25 @@ namespace WindowsPhoneSpeedyBlupi
             string worldFilename = GetWorldFilename(gamer, rank);
 
             string text = null;
-            if (Env.IMPL.isNotKNI() && Env.PLATFORM.isNotWeb())
+#if !(KNI && Web)
+
+            try
             {
-                try
-                {
-                    Stream stream = TitleContainer.OpenStream(worldFilename);
-                    StreamReader streamReader = new StreamReader(stream);
-                    text = streamReader.ReadToEnd();
-                    stream.Close();
-                }
-                catch (Exception e)
-                {
-                    Debug.Write(e.Message);
-                    Debug.Write("Fatal error. Loading world failed: " + worldFilename + "\n");
-                    //Environment.Exit(1);
-                }
+                Stream stream = TitleContainer.OpenStream(worldFilename);
+                StreamReader streamReader = new StreamReader(stream);
+                text = streamReader.ReadToEnd();
+                stream.Close();
             }
-            else
+            catch (Exception e)
             {
+                Debug.Write(e.Message);
+                Debug.Write("Fatal error. Loading world failed: " + worldFilename + "\n");
+                //Environment.Exit(1);
+            }
+#else
+            
                 text = WorldTxt.getWorld(rank);
-            }
+#endif
             if (text == null)
             {
                 return null;
