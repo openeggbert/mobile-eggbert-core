@@ -186,7 +186,7 @@ namespace WindowsPhoneSpeedyBlupi
             }
         }
         /// <summary>
-        /// Returns the point of the cente of the pad on the screen.
+        /// Returns the point of the center of the pad on the screen.
         /// </summary>
         private TinyPoint PadCenter
         {

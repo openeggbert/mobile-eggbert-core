@@ -66,7 +66,7 @@ namespace WindowsPhoneSpeedyBlupi
             {
                 return null;
             }
-            return text.Split("\n");
+            return text.Split('\n');
         }
 
         private static string GetWorldFilename(int gamer, int rank)
@@ -79,7 +79,7 @@ namespace WindowsPhoneSpeedyBlupi
             Debug.WriteLine("ReadGameData");
 
 #if !(KNI && WEB)
-            IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
+            IsolatedStorageFile userStoreForApplication = getUserStoreForApplication();
             if (userStoreForApplication.FileExists(GameDataFilename))
             {
                 IsolatedStorageFileStream isolatedStorageFileStream = null;
@@ -120,7 +120,7 @@ namespace WindowsPhoneSpeedyBlupi
 
 #if !(KNI && WEB)
 
-            IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
+            IsolatedStorageFile userStoreForApplication = getUserStoreForApplication();
             IsolatedStorageFileStream isolatedStorageFileStream = userStoreForApplication.OpenFile(GameDataFilename, FileMode.Create);
             if (isolatedStorageFileStream != null)
             {
@@ -138,7 +138,7 @@ namespace WindowsPhoneSpeedyBlupi
 
 #if !KNI
 
-            IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
+            IsolatedStorageFile userStoreForApplication = getUserStoreForApplication();
             try
             {
                 userStoreForApplication.DeleteFile(CurrentGameFilename);
@@ -157,7 +157,7 @@ namespace WindowsPhoneSpeedyBlupi
         {
             Debug.WriteLine("ReadCurrentGame");
 #if !(KNI && WEB)
-            IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
+            IsolatedStorageFile userStoreForApplication = getUserStoreForApplication();
             if (userStoreForApplication.FileExists(CurrentGameFilename))
             {
                 IsolatedStorageFileStream isolatedStorageFileStream = null;
@@ -188,7 +188,7 @@ namespace WindowsPhoneSpeedyBlupi
         {
             Debug.WriteLine("WriteCurrentGame");
 #if !(KNI && WEB)
-            IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
+            IsolatedStorageFile userStoreForApplication = getUserStoreForApplication();
             IsolatedStorageFileStream isolatedStorageFileStream = userStoreForApplication.OpenFile(CurrentGameFilename, FileMode.Create);
             if (isolatedStorageFileStream != null)
             {
@@ -200,6 +200,12 @@ namespace WindowsPhoneSpeedyBlupi
 #endif
         }
 
+private static IsolatedStorageFile getUserStoreForApplication() {
+    if(Env.IMPL.isFNA()) {
+        return IsolatedStorageFile.GetUserStoreForAssembly();
+    }
+    return IsolatedStorageFile.GetUserStoreForApplication();        
+}
         public static void GetIntArrayField(string[] lines, string section, int rank, string name, int[] array)
         {
             foreach (string text in lines)
