@@ -6,8 +6,12 @@ using System.Globalization;
 using System.IO;
 using System.IO.IsolatedStorage;
 using System.Text;
+using Microsoft.JSInterop;
+using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using WindowsPhoneSpeedyBlupi;
+using Microsoft.AspNetCore.Components;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace WindowsPhoneSpeedyBlupi
 {
@@ -33,20 +37,29 @@ namespace WindowsPhoneSpeedyBlupi
 
         public static string[] ReadWorld(int gamer, int rank)
         {
+
             string worldFilename = GetWorldFilename(gamer, rank);
+
             string text = null;
-            try
+            if (Env.IMPL.isNotKNI() && Env.PLATFORM.isNotWeb())
             {
-                Stream stream = TitleContainer.OpenStream(worldFilename);
-                StreamReader streamReader = new StreamReader(stream);
-                text = streamReader.ReadToEnd();
-                stream.Close();
+                try
+                {
+                    Stream stream = TitleContainer.OpenStream(worldFilename);
+                    StreamReader streamReader = new StreamReader(stream);
+                    text = streamReader.ReadToEnd();
+                    stream.Close();
+                }
+                catch (Exception e)
+                {
+                    Debug.Write(e.Message);
+                    Debug.Write("Fatal error. Loading world failed: " + worldFilename + "\n");
+                    //Environment.Exit(1);
+                }
             }
-            catch (Exception e)
+            else
             {
-                Debug.Write(e.Message);
-                Debug.Write("Fatal error. Loading world failed: " + worldFilename + "\n");
-                //Environment.Exit(1);
+                text = WorldTxt.getWorld(rank);
             }
             if (text == null)
             {
@@ -62,6 +75,9 @@ namespace WindowsPhoneSpeedyBlupi
 
         public static bool ReadGameData(byte[] data)
         {
+            Debug.WriteLine("ReadGameData");
+
+#if !(KNI && WEB)
             IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
             if (userStoreForApplication.FileExists(GameDataFilename))
             {
@@ -83,10 +99,26 @@ namespace WindowsPhoneSpeedyBlupi
                 }
             }
             return false;
+#else
+            if (true) return false;
+            string result = LocalStorageHelperHolder.LocalStorageHelper.ReadFromLocalStorageAsync(GameDataFilename).Result;
+            if (result == null || result.Length == 0) { return false; }
+            else
+            {
+                byte[] resultAsByteArray = Encoding.UTF8.GetBytes(result);
+                Array.Copy(resultAsByteArray, data, resultAsByteArray.Length);
+                return true;
+            }
+
+#endif
         }
 
         public static void WriteGameData(byte[] data)
         {
+            Debug.WriteLine("WriteGameData");
+
+#if !(KNI && WEB)
+
             IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
             IsolatedStorageFileStream isolatedStorageFileStream = userStoreForApplication.OpenFile(GameDataFilename, FileMode.Create);
             if (isolatedStorageFileStream != null)
@@ -94,10 +126,17 @@ namespace WindowsPhoneSpeedyBlupi
                 isolatedStorageFileStream.Write(data, 0, data.Length);
                 isolatedStorageFileStream.Close();
             }
+#else
+            //LocalStorageHelperHolder.LocalStorageHelper.SaveToLocalStorageAsync(GameDataFilename, Encoding.UTF8.GetString(data));
+#endif
         }
 
         public static void DeleteCurrentGame()
         {
+            Debug.WriteLine("DeleteCurrentGame");
+
+#if !KNI
+
             IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
             try
             {
@@ -106,10 +145,17 @@ namespace WindowsPhoneSpeedyBlupi
             catch
             {
             }
+#else
+            //LocalStorageHelperHolder.LocalStorageHelper.DeleteFromLocalStorageAsync(GameDataFilename);
+
+#endif
+
         }
 
         public static string ReadCurrentGame()
         {
+            Debug.WriteLine("ReadCurrentGame");
+#if !(KNI && WEB)
             IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
             if (userStoreForApplication.FileExists(CurrentGameFilename))
             {
@@ -131,10 +177,16 @@ namespace WindowsPhoneSpeedyBlupi
                 }
             }
             return null;
+#else
+            if (true) return null;
+            return LocalStorageHelperHolder.LocalStorageHelper.ReadFromLocalStorageAsync(CurrentGameFilename).Result;
+#endif
         }
 
         public static void WriteCurrentGame(string data)
         {
+            Debug.WriteLine("WriteCurrentGame");
+#if !(KNI && WEB)
             IsolatedStorageFile userStoreForApplication = IsolatedStorageFile.GetUserStoreForApplication();
             IsolatedStorageFileStream isolatedStorageFileStream = userStoreForApplication.OpenFile(CurrentGameFilename, FileMode.Create);
             if (isolatedStorageFileStream != null)
@@ -142,6 +194,9 @@ namespace WindowsPhoneSpeedyBlupi
                 isolatedStorageFileStream.Write(Encoding.UTF8.GetBytes(data), 0, data.Length);
                 isolatedStorageFileStream.Close();
             }
+#else
+            //LocalStorageHelperHolder.LocalStorageHelper.SaveToLocalStorageAsync(CurrentGameFilename, data);
+#endif
         }
 
         public static void GetIntArrayField(string[] lines, string section, int rank, string name, int[] array)
@@ -461,5 +516,36 @@ namespace WindowsPhoneSpeedyBlupi
         {
             return output.ToString();
         }
+
     }
+
+
+#if KNI && WEB
+    public class LocalStorageHelper
+    {
+        private readonly IJSRuntime _jsRuntime;
+
+        // Constructor to inject IJSRuntime
+        public LocalStorageHelper(IJSRuntime jsRuntime)
+        {
+            _jsRuntime = jsRuntime;
+        }
+
+        public async Task SaveToLocalStorageAsync(string key, string data)
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.setItem", key, data);
+        }
+
+        public async Task<string> ReadFromLocalStorageAsync(string key)
+        {
+            return await _jsRuntime.InvokeAsync<string>("localStorage.getItem", key);
+        }
+
+        public async Task DeleteFromLocalStorageAsync(string key)
+        {
+            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", key);
+        }
+    }
+
+#endif
 }

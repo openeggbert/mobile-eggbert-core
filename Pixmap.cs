@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 using WindowsPhoneSpeedyBlupi;
 using static System.Net.Mime.MediaTypeNames;
 using static WindowsPhoneSpeedyBlupi.Def;
-using static WindowsPhoneSpeedyBlupi.Xna;
+using static WindowsPhoneSpeedyBlupi.EnvClasses;
 
 namespace WindowsPhoneSpeedyBlupi
 {

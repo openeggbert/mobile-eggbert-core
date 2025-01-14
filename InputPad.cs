@@ -7,7 +7,7 @@ using System.Linq;
 using Microsoft.Devices.Sensors;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
-using static WindowsPhoneSpeedyBlupi.Xna;
+using static WindowsPhoneSpeedyBlupi.EnvClasses;
 
 namespace WindowsPhoneSpeedyBlupi
 {
@@ -241,10 +241,18 @@ namespace WindowsPhoneSpeedyBlupi
             int keyPress = 0;
             padPressed = false;
             Def.ButtonGlyph buttonGlyph = Def.ButtonGlyph.None;
-            TouchCollection touches = TouchPanel.GetState();
-            touchCount = touches.Count;
-            List<TinyPoint> touchesOrClicks = new List<TinyPoint>();
-            foreach (TouchLocation item in touches)
+
+            TouchCollection touches = default;
+            if (Env.IMPL.isNotKNI())
+            {
+                touches = TouchPanel.GetState();
+                touchCount = touches.Count;
+            }
+
+            List <TinyPoint> touchesOrClicks = new List<TinyPoint>();
+
+
+            if(Env.IMPL.isNotKNI()) foreach (TouchLocation item in touches)
             {
                 if (item.State == TouchLocationState.Pressed || item.State == TouchLocationState.Moved)
                 {
@@ -252,6 +260,7 @@ namespace WindowsPhoneSpeedyBlupi
                     touchesOrClicks.Add(touchPress);
                 }
             }
+
 
             MouseState mouseState = Mouse.GetState();
             if (mouseState.LeftButton == ButtonState.Pressed)
@@ -265,7 +274,7 @@ namespace WindowsPhoneSpeedyBlupi
             float screenHeight = game1.getGraphics().GraphicsDevice.Viewport.Height;
             float screenRatio = screenWidth / screenHeight;
 
-            if (Env.PLATFORM == Platform.Android &&screenRatio > 1.3333333333333333)
+            if ((Env.PLATFORM.isAndroid() && screenRatio > 1.3333333333333333) || (Env.IMPL.isKNI()))
             {
                 for (int i = 0; i < touchesOrClicks.Count; i++)
                 {

@@ -103,11 +103,18 @@ namespace WindowsPhoneSpeedyBlupi
                 throw new Exception("Fatal error: Not initialized. Env.init() was not called.");
             }
             Exiting += OnExiting;
-            if(!TouchPanel.GetCapabilities().IsConnected)
+            
+#if KNI
+            Deactivated += OnDeactivated;
+            Activated += OnActivated;
+#endif
+
+            if (Env.IMPL.isNotKNI() && !TouchPanel.GetCapabilities().IsConnected)
             {
                 this.IsMouseVisible = true;
                 Mouse.SetCursor(MouseCursor.Arrow);
             }
+
             graphics = new GraphicsDeviceManager(this);
             graphics.IsFullScreen = false;
             base.Content.RootDirectory = "Content";
@@ -149,7 +156,11 @@ namespace WindowsPhoneSpeedyBlupi
         {
         }
 
+#if !KNI
         protected override void OnDeactivated(object sender, EventArgs args)
+#else
+        protected void OnDeactivated(object sender, EventArgs args)
+#endif
         {
             if (phase == Def.Phase.Play)
             {
@@ -159,13 +170,21 @@ namespace WindowsPhoneSpeedyBlupi
             {
                 decor.CurrentDelete();
             }
+#if !KNI
             base.OnDeactivated(sender, args);
+#endif
         }
 
+#if !KNI
         protected override void OnActivated(object sender, EventArgs args)
+#else
+        protected void OnActivated(object sender, EventArgs args)
+#endif
         {
             continueMission = 1;
+#if !KNI
             base.OnActivated(sender, args);
+#endif
         }
 
         protected void OnExiting(object sender, EventArgs args)
